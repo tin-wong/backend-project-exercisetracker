@@ -93,7 +93,7 @@ app.post('/api/users', async (req, res, next) => {
 })
 
 app.post('/api/users/:_id/exercises', async (req, res, next) => {
-  if(req.body.date === ""){
+  if(req.body.date === "" || req.body.date === undefined){
     newDate = new Date()
   } else {
     console.log(req.body.date)
