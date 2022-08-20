@@ -96,6 +96,7 @@ app.post('/api/users/:_id/exercises', async (req, res, next) => {
   if(req.body.date === ""){
     newDate = new Date()
   } else {
+    console.log(req.body.date)
     newDate = new Date(req.body.date)
   }
   const findUser = await User.findById(req.params._id);
