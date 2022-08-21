@@ -96,7 +96,6 @@ app.post('/api/users/:_id/exercises', async (req, res, next) => {
   if(req.body.date === "" || req.body.date === undefined){
     newDate = new Date()
   } else {
-    console.log(req.body.date)
     newDate = new Date(req.body.date)
   }
   const findUser = await User.findById(req.params._id);
@@ -121,14 +120,29 @@ app.post('/api/users/:_id/exercises', async (req, res, next) => {
 });
 
 app.get('/api/users/:_id/logs', async (req, res, next) => {
-  const from = req.query.from;
-  const to = req.query.to;
-  const limit = req.query.limit;
+  //
+  if (req.query.from === undefined){
+    from = new Date(1970-01-01)
+  } else {
+    from = req.query.from;
+  }
+  
+  if (req.query.to === undefined){
+    to = new Date()
+  } else {
+    to = req.query.to;
+  }
+
+  if (req.query.limit === undefined){
+    limit = 0
+  } else {
+    limit = req.query.limit;
+  }
 
   const exerciseCount = await Exercise.count({userId: req.params._id});
   const exerciseList = await Exercise.find({userId: req.params._id, date: {$gte: from, $lte: to}}).limit(limit);
   console.log(exerciseList)
-    
+
   let log = [];
   for(let i = 0; i < exerciseList.length; i++) {
     let newExercise = {
