@@ -21,7 +21,7 @@ const exerciseSchema = new mongoose.Schema({
     username: String,
     description: String,
     duration: Number,
-    date: String,
+    date: Date,
     userId: String
 })
 
@@ -65,7 +65,7 @@ Exercise.deleteMany({}, (error, mongooseDeleteResult) => {
     username: newUser.username,
     description: "Test Exercise 1",
     duration: 10,
-    date: new Date().toDateString(),
+    date: new Date(),
     userId: newUser._id
   });
   newExercise.save((err) => {
@@ -103,7 +103,7 @@ app.post('/api/users/:_id/exercises', async (req, res, next) => {
   const newExercise = new Exercise({
     userId: findUser._id, 
     username: findUser.username, 
-    date: newDate.toDateString(),
+    date: newDate,
     duration: req.body.duration,
     description: req.body.description
   });
@@ -112,7 +112,7 @@ app.post('/api/users/:_id/exercises', async (req, res, next) => {
     res.json({
       _id: result.userId, 
       username: result.username, 
-      date: result.date,
+      date: result.date.toDateString(),
       duration: result.duration,
       description: result.description
     });
@@ -121,10 +121,14 @@ app.post('/api/users/:_id/exercises', async (req, res, next) => {
 });
 
 app.get('/api/users/:_id/logs', async (req, res, next) => {
+  const from = req.query.from;
+  const to = req.query.to;
+  const limit = req.query.limit;
+
   const exerciseCount = await Exercise.count({userId: req.params._id});
-  const exerciseList = await Exercise.find({userId: req.params._id});
-  //const getUser = await user.find({_id: req.params._id});
-  
+  const exerciseList = await Exercise.find({userId: req.params._id, date: {$gte: from, $lte: to}}).limit(limit);
+  console.log(exerciseList)
+    
   let log = [];
   for(let i = 0; i < exerciseList.length; i++) {
     let newExercise = {
@@ -142,6 +146,8 @@ app.get('/api/users/:_id/logs', async (req, res, next) => {
     log: log
   })
 });
+
+app.get('/api/users/:_id/logs/')
 
 const listener = app.listen(process.env.PORT || 3000, () => {
   console.log('Your app is listening on port ' + listener.address().port)
