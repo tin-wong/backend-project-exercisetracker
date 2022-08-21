@@ -148,7 +148,7 @@ app.get('/api/users/:_id/logs', async (req, res, next) => {
     let newExercise = {
       description: exerciseList[i].description,
       duration: exerciseList[i].duration,
-      date: exerciseList[i].date
+      date: exerciseList[i].date.toDateString()
     }
     log.push(newExercise);
   }
