@@ -27,25 +27,12 @@ const exerciseSchema = new mongoose.Schema({
 
 const Exercise = mongoose.model('exercise', exerciseSchema);
 
-// Create an user model
+// Create an User model
 const userSchema = new mongoose.Schema({
   username: String
 })
 
 const User = mongoose.model('user', userSchema);
-
-// // Create a log model
-// const logSchema = new mongoose.Schema({
-//   username: String,
-//   count :Number,
-//   log: [{
-//     description: String,
-//     duation: Number,
-//     date: Date
-//   }]
-// })
-
-// const log = mongoose.model('log', logSchema);
 
 // Delete all exisiting documents in the database. Then initialize it with a document. 
 User.deleteMany({}, (error, mongooseDeleteResult) => {
@@ -79,6 +66,7 @@ app.get('/', (req, res) => {
   res.sendFile(__dirname + '/views/index.html')
 });
 
+// Save a new user to the database with info from the form. Then output it as JSON.
 app.post('/api/users', async (req, res, next) => {
   const newUser = new User({username: req.body.username});
   newUser.save((err, result) => {
@@ -86,6 +74,7 @@ app.post('/api/users', async (req, res, next) => {
     res.json({username: result.username, _id: result.id})
     next();
   });
+// Use mongoose to find all users. Then output them as JSON.
 }).get('/api/users', async (req, res, next) => {
   const allUsers = await User.find();
   res.json(allUsers);
@@ -93,12 +82,14 @@ app.post('/api/users', async (req, res, next) => {
 })
 
 app.post('/api/users/:_id/exercises', async (req, res, next) => {
+  // Set it to the current time if it is not defined
   if(req.body.date === "" || req.body.date === undefined){
     newDate = new Date()
   } else {
     newDate = new Date(req.body.date)
   }
   const findUser = await User.findById(req.params._id);
+  // Define a new exericse with info from the form
   const newExercise = new Exercise({
     userId: findUser._id, 
     username: findUser.username, 
@@ -106,6 +97,7 @@ app.post('/api/users/:_id/exercises', async (req, res, next) => {
     duration: req.body.duration,
     description: req.body.description
   });
+  // Save the new exercise to MongoDB. Then output it as JSON.
   newExercise.save((err, result) => {
     if (err) console.log(err);
     res.json({
@@ -120,29 +112,16 @@ app.post('/api/users/:_id/exercises', async (req, res, next) => {
 });
 
 app.get('/api/users/:_id/logs', async (req, res, next) => {
-  //
-  if (req.query.from === undefined){
-    from = new Date(1970-01-01)
-  } else {
-    from = req.query.from;
-  }
-  
-  if (req.query.to === undefined){
-    to = new Date()
-  } else {
-    to = req.query.to;
-  }
+  // Ternary operator to give variables default values
+  req.query.from === undefined ? from = new Date(1970-01-01) : from = req.query.from;
+  req.query.to === undefined ? to = new Date() : to = req.query.to;
+  req.query.limit === undefined ? limit = 0 : limit = req.query.limit;
 
-  if (req.query.limit === undefined){
-    limit = 0
-  } else {
-    limit = req.query.limit;
-  }
-
+  // Use mongoose to get exericseCount and exerciseList from MongoDB
   const exerciseCount = await Exercise.count({userId: req.params._id});
   const exerciseList = await Exercise.find({userId: req.params._id, date: {$gte: from, $lte: to}}).limit(limit);
-  console.log(exerciseList)
 
+  // Push exerciseList that matches the query to the log array
   let log = [];
   for(let i = 0; i < exerciseList.length; i++) {
     let newExercise = {
@@ -153,6 +132,7 @@ app.get('/api/users/:_id/logs', async (req, res, next) => {
     log.push(newExercise);
   }
 
+  // Output the result as JSON
   res.json({
     username: exerciseList[0].username,
     count: exerciseCount,
