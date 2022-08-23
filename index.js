@@ -130,8 +130,6 @@ app.get('/api/users/:_id/logs', async (req, res, next) => {
       date: exerciseList[i].date.toDateString()
     }
     log.push(newExercise);
-    console.log(newExercise.date)
-    console.log(typeof newExercise.date)
   }
 
   // Output the result as JSON
